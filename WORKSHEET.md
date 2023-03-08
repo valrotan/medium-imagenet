@@ -135,7 +135,7 @@ Be sure to also get the class names. You might notice that we don't have them lo
 
 # Part 2: Models
 
-The following questions relate to `models/build.py` and `models/models.py`.
+The following questions relate to `models/*`.
 
 ## What models are implemented for you?
 
@@ -253,7 +253,7 @@ You only need to observe the training for ~ 5 epochs to average out the noise in
 
 ## 6.0 Implement and train ResNet18
 
-In `models/models.py`, we provided some skelly/guiding comments to implement ResNet. Implement it and train it on CIFAR10. Report training and validation curves, hyperparameters, best validation accuracy, and training time as compared to AlexNet. 
+In `models/resnet.py`, we provided some skelly/guiding comments to implement ResNet. Implement it and train it on CIFAR10. Report training and validation curves, hyperparameters, best validation accuracy, and training time as compared to AlexNet. 
 
 `YOUR ANSWER HERE`
 
