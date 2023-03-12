@@ -8,12 +8,13 @@ import time
 import numpy as np
 import torch
 import torch.nn as nn
+from fvcore.nn import FlopCountAnalysis, flop_count_str
 from timm.utils import AverageMeter, accuracy
 from torch.optim.lr_scheduler import CosineAnnealingLR
 from torch.utils.data import Dataset  # For custom datasets
 from tqdm import tqdm
-from fvcore.nn import FlopCountAnalysis, flop_count_str
 
+import wandb
 from config import get_config
 from data import build_loader
 from models import build_model
@@ -60,15 +61,15 @@ def main(config):
 
     # param and flop counts
     n_parameters = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    toy_input = torch.rand(1, 3, config.DATA.IMG_SIZE, config.DATA.IMG_SIZE).to(device) # for measuring flops
+    toy_input = torch.rand(1, 3, config.DATA.IMG_SIZE, config.DATA.IMG_SIZE).to(device)  # for measuring flops
     flops = FlopCountAnalysis(model, toy_input)
     del toy_input
 
     # print("Model = %s" % str(model_without_ddp))
     n_flops = flops.total()
     logger.info(flop_count_str(flops))
-    logger.info('number of params: {} M'.format(n_parameters / 1e6))
-    logger.info(f'flops: {n_flops/1e6} MFLOPS')
+    logger.info("number of params: {} M".format(n_parameters / 1e6))
+    logger.info(f"flops: {n_flops/1e6} MFLOPS")
 
     # Keep it simple with basic epoch scheduler
     optimizer = build_optimizer(config, model)
@@ -103,13 +104,18 @@ def main(config):
         logger.info(f"Max accuracy: {max_accuracy:.2f}%\n")
         lr_scheduler.step()
 
-        log_stats = {"epoch": epoch, "n_params": n_parameters, "n_flops": n_flops,
-                     "train_acc": train_acc1, "train_loss": train_loss, 
-                     "val_acc": val_acc1, "val_loss": val_loss}
-        with open(
-                os.path.join(config.OUTPUT, "metrics.json"), mode="a", encoding="utf-8"
-            ) as f:
-                f.write(json.dumps(log_stats) + "\n")
+        log_stats = {
+            "epoch": epoch,
+            "n_params": n_parameters,
+            "n_flops": n_flops,
+            "train_acc": train_acc1,
+            "train_loss": train_loss,
+            "val_acc": val_acc1,
+            "val_loss": val_loss,
+        }
+        wandb.log({"train_acc": train_acc1, "train_loss": train_loss, "val_acc": val_acc1, "val_loss": val_loss})
+        with open(os.path.join(config.OUTPUT, "metrics.json"), mode="a", encoding="utf-8") as f:
+            f.write(json.dumps(log_stats) + "\n")
 
     total_time = time.time() - start_time
     total_time_str = str(datetime.timedelta(seconds=int(total_time)))
@@ -216,6 +222,8 @@ def evaluate(config, data_loader, model):
 
 if __name__ == "__main__":
     args, config = parse_option()
+
+    wandb.init(project="nmep-hw1", config=config, group=config.MODEL.NAME)
 
     seed = config.SEED
     torch.manual_seed(seed)
