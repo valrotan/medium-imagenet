@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-PATH = 'output/resnet18/preds.npy'
+PATH = 'output/convnext_medium_imagenet_2/convnext38/preds.npy'
 
 data = np.load(PATH)
 data = np.argmax(data, axis=1)

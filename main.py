@@ -33,7 +33,6 @@ def parse_option():
     parser.add_argument("--resume", help="resume from checkpoint")
     parser.add_argument(
         "--output",
-        default="output",
         type=str,
         metavar="PATH",
         help="root of output folder, the full path is <output>/<model_name>/<tag> (default: output)",
@@ -64,6 +63,7 @@ def main(config):
     toy_input = torch.rand(1, 3, config.DATA.IMG_SIZE, config.DATA.IMG_SIZE).to(device)  # for measuring flops
     flops = FlopCountAnalysis(model, toy_input)
     del toy_input
+    model = torch.compile(model)
 
     # print("Model = %s" % str(model_without_ddp))
     n_flops = flops.total()

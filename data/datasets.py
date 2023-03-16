@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import h5py
 import torch
+import torchvision.transforms.v2
 from PIL import Image, ImageFile
 from torch.utils.data import Dataset, Subset
 from torchvision import transforms
@@ -85,12 +86,13 @@ class MediumImagenetHDF5Dataset(Dataset):
         transform.append(lambda x: torch.tensor(x / 256).to(torch.float))
         normalization = torch.Tensor([[0.485, 0.456, 0.406], [0.229, 0.224, 0.225]])
         transform.append(transforms.Normalize(normalization[0], normalization[1]))
-        transform.append(transforms.Resize([self.input_size] * 2))
+        transform.append(transforms.Resize([self.input_size] * 2, antialias=True))
         if self.split == "train" and self.augment:
             transform.extend(
                 [
-                    transforms.RandomHorizontalFlip(),
-                    transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
+                    # transforms.RandomHorizontalFlip(),
+                    # transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4),
+                    transforms.v2.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET)
                 ]
             )
         return transforms.Compose(transform)
